@@ -1,3 +1,4 @@
+import 'package:dolan/pages/auth/RegisterPage.dart';
 import 'package:flutter/material.dart';
 
 class LoginPage extends StatefulWidget {
@@ -36,7 +37,27 @@ class _LoginPage extends State<LoginPage> {
                   ),
                 ),
               ),
-              Container(alignment: Alignment.centerRight, child: SizedBox(width:128.0,child: FilledButton(onPressed: (){}, child: const Text('Login')))),
+              Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: FilledButton(
+                          onPressed: () {}, child: const Text('Login')))),
+
+              Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const RegisterPage(),
+                              ),
+                            );
+                          }, child: const Text('Register')))),
             ],
           ),
         ),
