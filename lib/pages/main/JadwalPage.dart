@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:dolan/class/detailjadwal.dart';
+import 'package:dolan/data/detailjadwal.dart';
 import 'package:dolan/pages/main/BuatJadwalPage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -13,7 +13,7 @@ class JadwalPage extends StatefulWidget {
 }
 
 class _JadwalPageState extends State<JadwalPage> {
-  // DetailJadwal? _dj;
+  DetailJadwal? _dj;
 
   @override
   void initState() {
