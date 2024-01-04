@@ -8,6 +8,7 @@ import 'package:dolan/pages/main/CariPage.dart';
 import 'package:dolan/pages/main/JadwalPage.dart';
 import 'package:dolan/services/UserPreference.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
@@ -29,7 +30,6 @@ class _LoginPage extends State<LoginPage> {
   var errorMessage = [];
   String email = "";
   String password = "";
-
   //method
   loginUser(String email, String password) async {
     final response = await widget.apiRequest.loginUser(email, password);
@@ -64,13 +64,16 @@ class _LoginPage extends State<LoginPage> {
   checkUserWasLoggedIn()  {
     final pref = UserPreference(widget._prefs);
     if (pref.getUserId() != null || pref.getUserId() != 0){
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const CariPage(),
-        ),
-      );
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const JadwalPage(),
+          ),
+        );
+      });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,6 +82,7 @@ class _LoginPage extends State<LoginPage> {
         future: widget._prefsFuture,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
+              checkUserWasLoggedIn();
               return  Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -146,7 +150,6 @@ class _LoginPage extends State<LoginPage> {
                 ),
               );
             }
-
             // `_prefs` is not ready yet, show loading bar till then.
             return const CircularProgressIndicator();
           }
