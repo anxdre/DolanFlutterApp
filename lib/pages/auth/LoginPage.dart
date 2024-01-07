@@ -3,15 +3,17 @@ import 'dart:ffi';
 
 import 'package:dolan/data/api/request/UserDataRequest.dart';
 import 'package:dolan/data/model/User.dart';
+import 'package:dolan/main.dart';
 import 'package:dolan/pages/auth/RegisterPage.dart';
 import 'package:dolan/pages/main/CariPage.dart';
 import 'package:dolan/pages/main/JadwalPage.dart';
+import 'package:dolan/pages/main/home.dart';
 import 'package:dolan/services/UserPreference.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends StatefulWidget{
   LoginPage({super.key});
 
   final UserDataRequest apiRequest = UserDataRequest();
@@ -63,16 +65,21 @@ class _LoginPage extends State<LoginPage> {
 
   checkUserWasLoggedIn()  {
     final pref = UserPreference(widget._prefs);
-    if (pref.getUserId() != null || pref.getUserId() != 0){
+
+    if (pref.getUserId() != null && pref.getUserId() != 0){
+      MyApp.userId = pref.getUserId();
+      print(MyApp.userId);
+      print(pref.getUserId());
       SchedulerBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => const JadwalPage(),
+            builder: (context) =>  const Home(),
           ),
         );
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
