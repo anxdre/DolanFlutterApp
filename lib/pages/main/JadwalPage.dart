@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:dolan/data/detailjadwal.dart';
+
+import 'package:dolan/data/model/detailjadwal.dart';
 import 'package:dolan/pages/main/BuatJadwalPage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -74,9 +75,7 @@ Widget DaftarJadwal(DaftarJadwal) {
                   
                   title: GestureDetector(
                       child: Text(DJs[index].informasiDolanan)),
-
-                  // subtitle: Text(PopMovs[index].overview),
-
+        
                    subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
