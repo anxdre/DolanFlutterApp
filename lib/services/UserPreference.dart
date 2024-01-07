@@ -1,10 +1,18 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async' show Future;
 
 class UserPreference {
-  String idKey = "userId";
-  String photoKey = "photo";
-  String nameKey = "name";
-  SharedPreferences prefs;
+
+  static late final SharedPreferences instance;
+
+  static Future<SharedPreferences> init() async =>
+      instance = await SharedPreferences.getInstance();
+
+
+  static String idKey = "userId";
+  static String photoKey = "photo";
+  static String nameKey = "name";
+  SharedPreferences prefs = instance;
   int? userId;
 
   UserPreference(this.prefs);

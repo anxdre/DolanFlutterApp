@@ -1,148 +1,140 @@
 import 'dart:convert';
 
-
-import 'package:dolan/data/model/detailjadwal.dart';
+import 'package:dolan/data/api/request/JadwalDataRequest.dart';
+import 'package:dolan/data/model/DetailJadwal.dart';
 import 'package:dolan/pages/main/BuatJadwalPage.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+
+import '../../services/DolanItem.dart';
 
 class JadwalPage extends StatefulWidget {
-  const JadwalPage({super.key});
+  JadwalPage({super.key});
+
+  final JadwalDataRequest apiRequest = JadwalDataRequest();
 
   @override
   State<JadwalPage> createState() => _JadwalPageState();
 }
 
-class _JadwalPageState extends State<JadwalPage> {
-  DetailJadwal? _dj;
+class _JadwalPageState extends State<JadwalPage> with WidgetsBindingObserver {
+  List<DetailJadwal> listOfJadwal = [];
+  var errorMsgVisibility = false;
+  var errorMessage = [];
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      fetchData();
+    }
+  }
+
+  fetchData() async {
+    final response = await widget.apiRequest.getAllJadwal();
+    var result = jsonDecode(response.body) as Map<String, dynamic>;
+
+    try {
+      setState(() {
+        errorMsgVisibility = false;
+        errorMessage.clear();
+      });
+    } catch (e) {
+      return;
+    }
+
+    if (response.statusCode != 200) {
+      setState(() {
+        errorMessage.add(result['message']);
+        errorMsgVisibility = true;
+      });
+      return;
+    }
+
+    final listOfObject = result['data'] as List<dynamic>;
+    for (int i = 0; i < listOfObject.length; i++) {
+      listOfJadwal.add(DetailJadwal.fromJson(listOfObject[i]));
+    }
+  }
 
   @override
   void initState() {
-    super.initState();
-    bacaData();
+    // TODO: implement initState
+    fetchData();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
+          children: <Widget>[
+            Container(
+                height: MediaQuery.of(context).size.height,
+                child: ListView.builder(
+                    itemCount: listOfJadwal.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Card(
+                          child: Column(
+                        children: <Widget>[
+                          ListTile(
+                            title: GestureDetector(
+                                child: Text(listOfJadwal[index].dolanan?.name ??
+                                    "Undefined")),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Image.network(
+                                    "https://goodstats.id/img/articles/original/2023/11/08/perkembangan-industri-game-dunia-48-pemainnya-berasal-dari-asia-pasifik-aPU9ZMbhO7.jpg?p=articles-lg"),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(
+                                      "Tanggal ; ${DateFormat.yMd().format(listOfJadwal[index].tanggal!)}"),
+                                ),
+                                Text("Jam : ${listOfJadwal[index].jam}"),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    // Action when the button is pressed
+                                  },
+                                  //ubah text button
+                                  child: Text(
+                                    'Pemain dibutuhkan : 1 / ${listOfDolanType[0].userMinimal}',
+                                  ),
+                                ),
+                                Text("Lokasi : ${listOfJadwal[index].lokasi}" ??
+                                    ""),
+                                Text(
+                                    "Alamat Lokasi : ${listOfJadwal[index].alamat}" ??
+                                        ""),
+                                SizedBox(height: 5),
+                                Container(
+                                  alignment: Alignment.bottomRight,
+                                  child: FilledButton(
+                                    onPressed: () {
+                                      // Action when the button is pressed
+                                    },
+                                    child: Text('Join'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ));
+                    })),
 
-  Future<String> fetchData() async {
-    final response = await http
-      .post(Uri.parse("https://hybrid.anxdre.my.id/api/auth/jadwal")
-    );
-    if (response.statusCode == 200) {
-    return response.body;
-    } else {
-    throw Exception('Failed to read API');
-    }
-  }
-
- bacaData() {
-    DJs.clear();
-    Future<String> data = fetchData();
-    data.then((value) {
-      Map json = jsonDecode(value);
-      for (var jadwal in json['data']) {
-        DetailJadwal dj = DetailJadwal.fromJSON(jadwal);
-        DJs.add(dj);
-      }
-      setState(() {
-        // _temp = PMs[2].overview;
-        for (var jadwal in json['data']) {
-          DetailJadwal dj = DetailJadwal.fromJSON(jadwal);
-          DJs.add(dj);
-        }
-      });
-    });
-  }
-
-  
-
-Widget DaftarJadwal(DaftarJadwal) {
-    if (DaftarJadwal != null) {
-      return ListView.builder(
-          itemCount: DaftarJadwal.length,
-          itemBuilder: (BuildContext ctxt, int index) {
-            int jumlahPemain = DJs[index].pemain.length;
-            return Card(
-                child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                ListTile(
-                  leading: Image.network(
-                      DaftarJadwal[index].foto,
-                      width: 50, // Sesuaikan lebar gambar sesuai kebutuhan
-                      height: 50, // Sesuaikan tinggi gambar sesuai kebutuhan
-                      fit: BoxFit.cover, // Sesuaikan jenis penyesuaian gambar sesuai kebutuhan
-                    ),
-                  
-                  title: GestureDetector(
-                      child: Text(DJs[index].informasiDolanan)),
-        
-                   subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(DJs[index].tanggal),
-                        Text(DJs[index].jam),
-                        SizedBox(height: 4),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Action when the button is pressed
-
-
-                          },
-                          //ubah text button
-                          child: Text('$jumlahPemain / ${DJs[index].jumlahPemain} orang'),
-
-                        ),
-
-
-                        Text(DJs[index].namaTempat),
-                        Text(DJs[index].alamat),
-                       
-                    
-                        SizedBox(height: 5),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Action when the button is pressed
-
-
-                          },
-                          child: Text('Party Chat'),
-                        ),
-                      ],
-                    ),
-                ),
-              ],
-            ));
-          });
-    } else {
-      return Center(
-        child: Text('Jadwal main masih kosong nih. Cari konco main atau bikin jadwal baru aja'),
-      );
-    }
-  }
-
-
- @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: ListView(
-      children: <Widget>[
-        Container(
-          height: MediaQuery.of(context).size.height - 200,
-          child: DaftarJadwal(DJs),
+          ],
         ),
-      ],
-    ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => BuatJadwalPage()),
-        );
-   
-      },
-      child: Icon(Icons.create_outlined),
-    ),
-  );
-}
-
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => BuatJadwalPage()),
+          );
+        },
+        child: Icon(Icons.create_outlined),
+      ),
+    );
+  }
 }

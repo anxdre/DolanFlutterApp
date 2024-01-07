@@ -1,11 +1,16 @@
 import 'package:dolan/pages/auth/LoginPage.dart';
+import 'package:dolan/services/UserPreference.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Initialize SharedPrefs instance.
+  await UserPreference.init();
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  static int? userId = null;
   const MyApp({super.key});
 
   // This widget is the root of your application.
