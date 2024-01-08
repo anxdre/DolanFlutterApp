@@ -2,11 +2,10 @@ import 'dart:convert';
 
 import 'package:dolan/data/api/request/JadwalDataRequest.dart';
 import 'package:dolan/data/model/DetailJadwal.dart';
+import 'package:dolan/main.dart';
 import 'package:dolan/pages/main/BuatJadwalPage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
-import '../../services/DolanItem.dart';
 
 class JadwalPage extends StatefulWidget {
   JadwalPage({super.key});
@@ -30,7 +29,7 @@ class _JadwalPageState extends State<JadwalPage> with WidgetsBindingObserver {
   }
 
   fetchData() async {
-    final response = await widget.apiRequest.getAllJadwal();
+    final response = await widget.apiRequest.getAllJadwal(MyApp.preference.getUserId() ?? 0);
     var result = jsonDecode(response.body) as Map<String, dynamic>;
 
     try {
@@ -81,44 +80,51 @@ class _JadwalPageState extends State<JadwalPage> with WidgetsBindingObserver {
                           children: <Widget>[
                             ListTile(
                               title: GestureDetector(
-                                  child: Text(listOfJadwal[index].dolanan?.name ??
-                                      "Undefined")),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Image.network(
-                                      "https://goodstats.id/img/articles/original/2023/11/08/perkembangan-industri-game-dunia-48-pemainnya-berasal-dari-asia-pasifik-aPU9ZMbhO7.jpg?p=articles-lg"),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: Text(
-                                        "Tanggal ; ${DateFormat.yMd().format(listOfJadwal[index].tanggal!)}"),
-                                  ),
-                                  Text("Jam : ${listOfJadwal[index].jam}"),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      // Action when the button is pressed
-                                    },
-                                    //ubah text button
-                                    child: Text(
-                                      'Pemain dibutuhkan : 1 / ${listOfDolanType[0].userMinimal}',
+                                  child: Text(
+                                listOfJadwal[index].dolanan?.name ??
+                                    "Undefined",
+                                style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 18),
+                              )),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Image.network(
+                                        "https://goodstats.id/img/articles/original/2023/11/08/perkembangan-industri-game-dunia-48-pemainnya-berasal-dari-asia-pasifik-aPU9ZMbhO7.jpg?p=articles-lg"),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8.0),
+                                      child: Text(
+                                          "Tanggal ; ${DateFormat.yMd().format(listOfJadwal[index].tanggal!)}"),
                                     ),
-                                  ),
-                                  Text("Lokasi : ${listOfJadwal[index].lokasi}" ??
-                                      ""),
-                                  Text(
-                                      "Alamat Lokasi : ${listOfJadwal[index].alamat}" ??
-                                          ""),
-                                  SizedBox(height: 5),
-                                  Container(
-                                    alignment: Alignment.bottomRight,
-                                    child: FilledButton(
+                                    Text("Jam : ${listOfJadwal[index].jam}"),
+                                    ElevatedButton(
                                       onPressed: () {
                                         // Action when the button is pressed
                                       },
-                                      child: Text('Join'),
+                                      //ubah text button
+                                      child: Text(
+                                        'Lihat Pemain',
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    Text(
+                                        "Lokasi : ${listOfJadwal[index].lokasi}" ??
+                                            ""),
+                                    Text(
+                                        "Alamat Lokasi : ${listOfJadwal[index].alamat}" ??
+                                            ""),
+                                    SizedBox(height: 5),
+                                    Container(
+                                      alignment: Alignment.bottomRight,
+                                      child: FilledButton(
+                                        onPressed: () {
+                                          // Action when the button is pressed
+                                        },
+                                        child: Text('Party Chat'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
