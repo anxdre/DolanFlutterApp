@@ -1,17 +1,17 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async' show Future;
 
-class UserPreference {
+import 'package:shared_preferences/shared_preferences.dart';
 
+class UserPreference {
   static late final SharedPreferences instance;
 
   static Future<SharedPreferences> init() async =>
       instance = await SharedPreferences.getInstance();
 
-
   static String idKey = "userId";
   static String photoKey = "photo";
   static String nameKey = "name";
+  static String emailKey = "email";
   SharedPreferences prefs = instance;
   int? userId;
 
@@ -29,12 +29,20 @@ class UserPreference {
     return prefs.getString(photoKey);
   }
 
+  String? getUserEmail() {
+    return prefs.getString(emailKey);
+  }
+
   storeUserId(int userId) async {
     await prefs.setInt(idKey, userId);
   }
 
   storeUserName(String username) async {
     await prefs.setString(nameKey, username);
+  }
+
+  storeEmail(String email) async {
+    await prefs.setString(emailKey, email);
   }
 
   storeUserPhoto(String photoUrl) async {

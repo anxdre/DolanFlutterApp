@@ -61,6 +61,7 @@ class _LoginPage extends State<LoginPage> {
     pref.storeUserId(data.id as int);
     pref.storeUserName(data.name ?? "");
     pref.storeUserPhoto(data.photoUrl ?? "");
+    pref.storeEmail(data.email ?? "");
   }
 
   checkUserWasLoggedIn()  {

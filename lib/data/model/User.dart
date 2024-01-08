@@ -24,6 +24,9 @@ class User {
     _updatedAt = updatedAt;
 }
 
+
+  User.create(this._id, this._name, this._email, this._photoUrl);
+
   User.fromJson(dynamic json) {
     _id = json['id'];
     _name = json['name'];

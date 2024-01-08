@@ -12,10 +12,13 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   static int? userId = null;
   const MyApp({super.key});
+  static late UserPreference preference;
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    preference = UserPreference(UserPreference.instance);
+    print(preference.getUserId());
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(

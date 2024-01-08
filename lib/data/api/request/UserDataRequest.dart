@@ -30,6 +30,7 @@ class UserDataRequest{
     return http.post(Uri.parse("${ApiSettings.baseUrl}api/auth/update"),
     headers: ApiSettings.headers,
     body: jsonEncode({
+      'id' :user.id,
       'email':user.email,
       'name':user.name,
       'password': password,
