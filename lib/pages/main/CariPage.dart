@@ -1,11 +1,16 @@
 import 'dart:convert';
 
+import 'package:dolan/data/api/request/JadwalDataRequest.dart';
+import 'package:dolan/data/model/UserParty.dart';
 import 'package:dolan/data/model/detailjadwal.dart';
+import 'package:dolan/main.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class CariPage extends StatefulWidget {
-  const CariPage({super.key});
+  CariPage({super.key});
+
+  final apiRequest = JadwalDataRequest();
 
   @override
   State<CariPage> createState() => _CariPageState();
@@ -13,119 +18,202 @@ class CariPage extends StatefulWidget {
 
 class _CariPageState extends State<CariPage> {
   String _txtcari = "";
+  List<DetailJadwal> listOfJadwal = [];
+  var errorMsgVisibility = false;
+  var errorMessage = [];
 
-  Future<String> fetchData() async {
-    final response = await http.post(
-        Uri.parse("https://hybrid.anxdre.my.id/api/auth/carijadwal"),
-        body: {'cari': _txtcari});
-    if (response.statusCode == 200) {
-      return response.body;
-    } else {
-      throw Exception('Failed to read API');
+  fetchData() async {
+    final response = await widget.apiRequest.searchJadwal(_txtcari);
+    var result = jsonDecode(response.body) as Map<String, dynamic>;
+
+    try {
+      setState(() {
+        errorMsgVisibility = false;
+        errorMessage.clear();
+      });
+    } catch (e) {
+      return;
+    }
+
+    if (response.statusCode != 200) {
+      setState(() {
+        errorMessage.add(result['message']);
+        errorMsgVisibility = true;
+      });
+      return;
+    }
+    listOfJadwal.clear();
+    final listOfObject = result['data'] as List<dynamic>;
+    for (int i = 0; i < listOfObject.length; i++) {
+      listOfJadwal.add(DetailJadwal.fromJson(listOfObject[i]));
     }
   }
 
-  bacaData() {
-    // DJs.clear();
-    // Future<String> data = fetchData();
-    // data.then((value) {
-    //   Map json = jsonDecode(value);
-    //   for (var jadwal in json['data']) {
-    //     DetailJadwal dj = DetailJadwal.fromJSON(jadwal);
-    //     DJs.add(dj);
-    //   }
-    //   setState(() {
-    //     for (var jadwal in json['data']) {
-    //       DetailJadwal dj = DetailJadwal.fromJSON(jadwal);
-    //       DJs.add(dj);
-    //     }
-    //   });
-    // });
+  joinParty(int jadwalId) async {
+    final response = await widget.apiRequest
+        .joinParty(jadwalId, MyApp.preference.getUserId() ?? 0);
+    var result = jsonDecode(response.body) as Map<String, dynamic>;
+
+    try {
+      setState(() {
+        errorMsgVisibility = false;
+        errorMessage.clear();
+      });
+    } catch (e) {
+      return;
+    }
+
+    if (response.statusCode != 200) {
+      setState(() {
+        errorMessage.add(result['message']);
+        errorMsgVisibility = true;
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(result['message'])));
+      });
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content:
+            Text(result['Sukses join party, silahkan cek di menu jadwalmu'])));
+  }
+
+  Future<List<UserParty>> fetchUserParty(int jadwalId) async {
+    List<UserParty> userParty = [];
+    final response = await widget.apiRequest.getUserParty(jadwalId);
+    var result = jsonDecode(response.body) as Map<String, dynamic>;
+
+    final listOfObject = result['data'] as List<dynamic>;
+    print(listOfObject);
+    for (int i = 0; i < listOfObject.length; i++) {
+      userParty.add(UserParty.fromJson(listOfObject[i]));
+    }
+    return userParty;
   }
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    bacaData();
-  }
-
-  Widget DaftarCariJadwal(DaftarJadwal) {
-    if (DaftarJadwal != null) {
-      return ListView.builder(
-          itemCount: DaftarJadwal.length,
-          itemBuilder: (BuildContext ctxt, int index) {
-            int jumlahPemain = 0; // TODO::lenght of dolan
-            return Card(
-                child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                ListTile(
-                  leading: Image.network(
-                    DaftarJadwal[index].foto,
-                    width: 50, // Sesuaikan lebar gambar sesuai kebutuhan
-                    height: 50, // Sesuaikan tinggi gambar sesuai kebutuhan
-                    fit: BoxFit
-                        .cover, // Sesuaikan jenis penyesuaian gambar sesuai kebutuhan
-                  ),
-                  // title:
-                  //     GestureDetector(child: Text(DJs[index].informasiDolanan)),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Text(DJs[index].tanggal),
-                      // Text(DJs[index].jam),
-                      // SizedBox(height: 4),
-                      // ElevatedButton(
-                      //   onPressed: () {
-                      //     // Action when the button is pressed
-                      //   },
-                      //   //ubah text button
-                      //   child: Text(
-                      //       '$jumlahPemain / ${DJs[index].jumlahPemain} orang'),
-                      // ),
-                      // Text(DJs[index].namaTempat),
-                      // Text(DJs[index].alamat),
-                      // SizedBox(height: 5),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Action when the button is pressed
-                        },
-                        child: Text('Join'),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ));
-          });
-    } else {
-      return CircularProgressIndicator();
-    }
+    fetchData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: ListView(children: <Widget>[
-      TextFormField(
-        decoration: const InputDecoration(
-          icon: Icon(Icons.search),
-          labelText: 'Cari...',
-        ),
-        onFieldSubmitted: (value) {
-          setState(() {
-            _txtcari = value;
-          });
-          // _txtcari = value;
-          bacaData();
-        },
-      ),
-      // Text(_temp)
-      Container(
-        height: MediaQuery.of(context).size.height - 200,
-        // child: DaftarCariJadwal(DJs),
-      )
-    ]));
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              TextFormField(
+                decoration: const InputDecoration(
+                  icon: Icon(Icons.search),
+                  labelText: 'Cari...',
+                ),
+                onFieldSubmitted: (value) {
+                  setState(() {
+                    _txtcari = value;
+                  });
+                  fetchData();
+                },
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 24.0),
+                  child: ListView.builder(
+                      itemCount: listOfJadwal.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return Card(
+                            child: Column(
+                          children: <Widget>[
+                            ListTile(
+                              title: GestureDetector(
+                                  child: Text(
+                                listOfJadwal[index].dolanan?.name ?? "Undefined",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 18),
+                              )),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Image.network(
+                                        "https://goodstats.id/img/articles/original/2023/11/08/perkembangan-industri-game-dunia-48-pemainnya-berasal-dari-asia-pasifik-aPU9ZMbhO7.jpg?p=articles-lg"),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8.0),
+                                      child: Text(
+                                          "Tanggal ; ${DateFormat.yMd().format(listOfJadwal[index].tanggal!)}"),
+                                    ),
+                                    Text("Jam : ${listOfJadwal[index].jam}"),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        var data = fetchUserParty(
+                                            listOfJadwal[index].id!);
+                                        showDialog(
+                                            context: context,
+                                            builder: (context) => Dialog(
+                                              child: SizedBox(
+                                                height: MediaQuery.of(context).size.height * 0.5,
+                                                child: Column(
+                                                  children: [
+                                                    FutureBuilder(
+                                                        future: data,
+                                                        builder: (context,
+                                                            snapshot) {
+                                                          if (snapshot
+                                                              .hasData) {
+                                                            return SingleChildScrollView(child: Padding(
+                                                              padding: const EdgeInsets.all(16.0),
+                                                              child: Column(
+                                                                children: [
+                                                                  for (var value in snapshot.data!)
+                                                                    Card(child:ListTile(
+                                                                      leading:FlutterLogo(),
+                                                                      title: Text('${value.name}'),
+                                                                    ))
+                                                                ],
+                                                              ),
+                                                            ),
+                                                            );
+                                                          }else{
+                                                            return Text("loading ...");
+                                                          }
+                                                        })
+                                                  ],
+                                                ),
+                                              ),
+                                            ));
+                                      },
+                                      //ubah text button
+                                      child: Text(
+                                        'Lihat Pemain',
+                                      ),
+                                    ),
+                                    Text("Lokasi : ${listOfJadwal[index].lokasi}" ??
+                                        ""),
+                                    Text(
+                                        "Alamat Lokasi : ${listOfJadwal[index].alamat}" ??
+                                            ""),
+                                    SizedBox(height: 5),
+                                    Container(
+                                      alignment: Alignment.bottomRight,
+                                      child: FilledButton(
+                                        onPressed: () {
+                                          joinParty(listOfJadwal[index].id ?? 0);
+                                        },
+                                        child: Text('Join'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ));
+                      }),
+                ),
+              ),
+            ],
+          ),
+        ));
   }
 }

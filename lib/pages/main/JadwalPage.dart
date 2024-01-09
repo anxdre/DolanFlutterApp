@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import 'package:dolan/data/api/request/JadwalDataRequest.dart';
 import 'package:dolan/data/model/DetailJadwal.dart';
+import 'package:dolan/data/model/UserParty.dart';
 import 'package:dolan/main.dart';
+import 'package:dolan/pages/chat/ChatPage.dart';
 import 'package:dolan/pages/main/BuatJadwalPage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -28,8 +30,22 @@ class _JadwalPageState extends State<JadwalPage> with WidgetsBindingObserver {
     }
   }
 
+  Future<List<UserParty>> fetchUserParty(int jadwalId) async {
+    List<UserParty> userParty = [];
+    final response = await widget.apiRequest.getUserParty(jadwalId);
+    var result = jsonDecode(response.body) as Map<String, dynamic>;
+
+    final listOfObject = result['data'] as List<dynamic>;
+    print(listOfObject);
+    for (int i = 0; i < listOfObject.length; i++) {
+      userParty.add(UserParty.fromJson(listOfObject[i]));
+    }
+    return userParty;
+  }
+
   fetchData() async {
-    final response = await widget.apiRequest.getAllJadwal(MyApp.preference.getUserId() ?? 0);
+    final response =
+        await widget.apiRequest.getAllJadwal(MyApp.preference.getUserId() ?? 0);
     var result = jsonDecode(response.body) as Map<String, dynamic>;
 
     try {
@@ -83,7 +99,8 @@ class _JadwalPageState extends State<JadwalPage> with WidgetsBindingObserver {
                                   child: Text(
                                 listOfJadwal[index].dolanan?.name ??
                                     "Undefined",
-                                style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 18),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 18),
                               )),
                               subtitle: Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
@@ -97,10 +114,45 @@ class _JadwalPageState extends State<JadwalPage> with WidgetsBindingObserver {
                                       child: Text(
                                           "Tanggal ; ${DateFormat.yMd().format(listOfJadwal[index].tanggal!)}"),
                                     ),
-                                    Text("Jam : ${listOfJadwal[index].jam}"),
+                                    Text("Jam : ${listOfJadwal[index].jam?.replaceRange(0, 3, "")}"),
                                     ElevatedButton(
                                       onPressed: () {
-                                        // Action when the button is pressed
+                                        var data = fetchUserParty(
+                                            listOfJadwal[index].id!);
+                                        showDialog(
+                                            context: context,
+                                            builder: (context) => Dialog(
+                                                  child: SizedBox(
+                                                    height: MediaQuery.of(context).size.height * 0.5,
+                                                    child: Column(
+                                                      children: [
+                                                        FutureBuilder(
+                                                            future: data,
+                                                            builder: (context,
+                                                                snapshot) {
+                                                              if (snapshot
+                                                                  .hasData) {
+                                                                return SingleChildScrollView(child: Padding(
+                                                                  padding: const EdgeInsets.all(16.0),
+                                                                  child: Column(
+                                                                    children: [
+                                                                      for (var value in snapshot.data!)
+                                                                      Card(child:ListTile(
+                                                                      leading:FlutterLogo(),
+                                                                      title: Text('${value.name}'),
+                                                                      ))
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                );
+                                                              }else{
+                                                                return Text("loading ...");
+                                                              }
+                                                            })
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ));
                                       },
                                       //ubah text button
                                       child: Text(
@@ -118,7 +170,24 @@ class _JadwalPageState extends State<JadwalPage> with WidgetsBindingObserver {
                                       alignment: Alignment.bottomRight,
                                       child: FilledButton(
                                         onPressed: () {
-                                          // Action when the button is pressed
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => ChatPage(
+                                                  chatTitle: listOfJadwal[index]
+                                                          .dolanan
+                                                          ?.name ??
+                                                      "",
+                                                  jadwalId:
+                                                      listOfJadwal[index].id!,
+                                                  userId: MyApp.preference
+                                                      .getUserId()!),
+                                            ),
+                                          ).onError((error, stackTrace) =>
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(SnackBar(
+                                                      content: Text(
+                                                          'Maaf terjadi kesalahan'))));
                                         },
                                         child: Text('Party Chat'),
                                       ),
