@@ -124,7 +124,7 @@ class _JadwalPageState extends State<JadwalPage> with WidgetsBindingObserver {
                                       child: Text(
                                           "Tanggal ; ${DateFormat.yMd().format(listOfJadwal[index].tanggal!)}"),
                                     ),
-                                    Text("Jam : ${listOfJadwal[index].jam?.replaceRange(0, 3, "")}"),
+                                    Text("Jam : ${listOfJadwal[index].jam?.replaceRange(5, 8, "")}"),
                                     ElevatedButton(
                                       onPressed: () {
                                         var data = fetchUserParty(
