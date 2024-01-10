@@ -12,7 +12,11 @@ class ChatPage extends StatefulWidget {
   final String chatTitle;
   final ChatRequest apiRequest = ChatRequest();
 
-  ChatPage({super.key, required this.chatTitle ,required this.jadwalId, required this.userId});
+  ChatPage(
+      {super.key,
+      required this.chatTitle,
+      required this.jadwalId,
+      required this.userId});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -48,119 +52,147 @@ class _ChatPageState extends State<ChatPage> {
     }
 
     final listOfObject = result['data'] as List<dynamic>;
-    listOfChat.clear();
-    setState(() {
-      for (int i = 0; i < listOfObject.length; i++) {
-        listOfChat.add(Chat.fromJson(listOfObject[i]));
+    List<Chat> listTemp = [];
+    for (int i = 0; i < listOfObject.length; i++) {
+      listTemp.add(Chat.fromJson(listOfObject[i]));
+    }
+    if (listTemp.length != listOfChat.length) {
+      setState(() {
+        listOfChat.clear();
+        listOfChat.addAll(listTemp);
+      });
+    }
+  }
+
+    sendMessage(String message) async {
+      final response = await widget.apiRequest.addPartyChat(
+          widget.jadwalId, MyApp.preference.getUserName()!, message);
+      var result = jsonDecode(response.body) as Map<String, dynamic>;
+      print(result);
+
+      try {
+        setState(() {
+          errorMsgVisibility = false;
+          errorMessage.clear();
+        });
+      } catch (e) {
+        return;
       }
-    });
-  }
 
-  sendMessage(String message) async {
-    final response = await widget.apiRequest.addPartyChat(
-        widget.jadwalId, MyApp.preference.getUserName()!, message);
-    var result = jsonDecode(response.body) as Map<String, dynamic>;
-    print(result);
-
-    try {
-      setState(() {
-        errorMsgVisibility = false;
-        errorMessage.clear();
-      });
-    } catch (e) {
-      return;
+      if (response.statusCode != 200) {
+        setState(() {
+          errorMessage.add(result['message']);
+          errorMsgVisibility = true;
+          print(result);
+        });
+        return;
+      }
+      fetchData();
     }
 
-    if (response.statusCode != 200) {
-      setState(() {
-        errorMessage.add(result['message']);
-        errorMsgVisibility = true;
-        print(result);
+    chatService() {
+      var job = Future.delayed(const Duration(seconds: 1), () {
+        fetchData();
       });
-      return;
+      job.whenComplete(() {
+        print("completed job");
+        chatService();
+      });
     }
-    fetchData();
-  }
 
-  @override
-  void initState() {
-    fetchData();
-    super.initState();
-  }
+    @override
+    void initState() {
+      chatService();
+      super.initState();
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.chatTitle)),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Stack(
-          children: [
-            Container(
-              height: MediaQuery.of(context).size.height,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 64.0),
-                child: ListView.builder(
-                    itemCount: listOfChat.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                          child: Column(
-                        children: <Widget>[
-                          ListTile(
-                            title: Text(
-                              listOfChat[index].name ?? "undefined",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 18),
-                            ),
-                            subtitle: Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(listOfChat[index].message ?? "undefined"),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: Text(
-                                        "${DateFormat.yMd().format(listOfChat[index].createdAt!)} - ${DateFormat.jm().format(listOfChat[index].createdAt!)}",
-                                        style: TextStyle(fontSize: 10)),
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        appBar: AppBar(title: Text(widget.chatTitle)),
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Stack(
+            children: [
+              Container(
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 64.0),
+                  child: ListView.builder(
+                      itemCount: listOfChat.length,
+                      itemBuilder: (context, index) {
+                        return Card(
+                            child: Column(
+                              children: <Widget>[
+                                ListTile(
+                                  title: Text(
+                                    listOfChat[index].name ?? "undefined",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18),
                                   ),
-                                ],
-                              ),
-                            ),
+                                  subtitle: Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment
+                                          .start,
+                                      children: [
+                                        Text(listOfChat[index].message ??
+                                            "undefined"),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 8.0),
+                                          child: Text(
+                                              "${DateFormat.yMd().format(
+                                                  listOfChat[index]
+                                                      .createdAt!)} - ${DateFormat
+                                                  .jm().format(listOfChat[index]
+                                                  .createdAt!)}",
+                                              style: TextStyle(fontSize: 10)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ));
+                      }),
+                ),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        color: Colors.white,
+                        width: MediaQuery
+                            .of(context)
+                            .size
+                            .width,
+                        child: TextFormField(
+                          controller: msgController,
+                          textInputAction: TextInputAction.send,
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.chat),
+                            labelText: 'Tuliskan Pesan',
                           ),
-                        ],
-                      ));
-                    }),
-              ),
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      color: Colors.white,
-                      width: MediaQuery.of(context).size.width,
-                      child: TextFormField(
-                        controller: msgController,
-                        textInputAction: TextInputAction.send,
-                        decoration: const InputDecoration(
-                          icon: Icon(Icons.chat),
-                          labelText: 'Tuliskan Pesan',
+                          onFieldSubmitted: (value) {
+                            sendMessage(value);
+                            msgController.clear();
+                          },
                         ),
-                        onFieldSubmitted: (value) {
-                          sendMessage(value);
-                          msgController.clear();
-                        },
                       ),
-                    ),
-                  )
-                ],
-              ),
-            )
-          ],
+                    )
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
-}

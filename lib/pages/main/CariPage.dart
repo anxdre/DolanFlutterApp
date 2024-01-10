@@ -50,6 +50,7 @@ class _CariPageState extends State<CariPage> {
   }
 
   joinParty(int jadwalId) async {
+    print(jadwalId);
     final response = await widget.apiRequest
         .joinParty(jadwalId, MyApp.preference.getUserId() ?? 0);
     var result = jsonDecode(response.body) as Map<String, dynamic>;
@@ -72,9 +73,9 @@ class _CariPageState extends State<CariPage> {
       });
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content:
-            Text(result['Sukses join party, silahkan cek di menu jadwalmu'])));
+            Text('Sukses join party, silahkan cek di menu jadwalmu')));
   }
 
   Future<List<UserParty>> fetchUserParty(int jadwalId) async {
@@ -141,9 +142,9 @@ class _CariPageState extends State<CariPage> {
                                     Padding(
                                       padding: const EdgeInsets.only(top: 8.0),
                                       child: Text(
-                                          "Tanggal ; ${DateFormat.yMd().format(listOfJadwal[index].tanggal!)}"),
+                                          "Tanggal : ${DateFormat.yMd().format(listOfJadwal[index].tanggal!)}"),
                                     ),
-                                    Text("Jam : ${listOfJadwal[index].jam}"),
+                                    Text("Jam : ${listOfJadwal[index].jam?.replaceRange(5, 8, "")}"),
                                     ElevatedButton(
                                       onPressed: () {
                                         var data = fetchUserParty(
