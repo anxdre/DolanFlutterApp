@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:ffi';
+// import 'dart:ffi';
 
 import 'package:dolan/data/api/request/UserDataRequest.dart';
 import 'package:dolan/data/model/User.dart';

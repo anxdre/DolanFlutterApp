@@ -88,7 +88,17 @@ class _JadwalPageState extends State<JadwalPage> with WidgetsBindingObserver {
                 height: MediaQuery.of(context).size.height,
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 200.0),
-                  child: ListView.builder(
+                  child: listOfJadwal.isEmpty
+                  ? Center(
+                      child: Text(
+                        "Jadwal main masih kosong nih, Cari konco main atau bikin jadwal baru aja",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
                       itemCount: listOfJadwal.length,
                       itemBuilder: (BuildContext context, int index) {
                         return Card(
